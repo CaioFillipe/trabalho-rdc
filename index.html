@@ -1,1 +1,597 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quantificação — Cabeamento Estruturado</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F5F6F8;
+    --panel:#FFFFFF;
+    --border:#DDE1E6;
+    --border-strong:#C3C9D1;
+    --ink:#1B2430;
+    --ink-dim:#5B6472;
+    --ink-faint:#8E97A3;
+    --accent:#1E3A5F;
+    --accent-soft:#EEF2F7;
+    --danger:#B3261E;
+    --mono:'IBM Plex Mono',monospace;
+    --sans:'Inter',sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    min-height:100vh;
+    padding:40px 24px 90px;
+  }
+  .wrap{max-width:1160px;margin:0 auto;}
 
+  .sheet-header{
+    display:flex;justify-content:space-between;align-items:flex-end;
+    border-bottom:1px solid var(--border-strong);
+    padding-bottom:20px;margin-bottom:28px;flex-wrap:wrap;gap:16px;
+  }
+  .sheet-header .title-block{max-width:660px;}
+  .eyebrow{
+    font-family:var(--mono);font-size:11px;letter-spacing:.12em;
+    color:var(--ink-faint);text-transform:uppercase;margin-bottom:8px;
+  }
+  h1{
+    font-size:24px;margin:0 0 6px;font-weight:700;letter-spacing:-.01em;
+    color:var(--ink);
+  }
+  .sheet-header p{margin:0;color:var(--ink-dim);font-size:13.5px;line-height:1.55;}
+  .sheet-meta{
+    font-family:var(--mono);font-size:11px;color:var(--ink-faint);
+    text-align:right;line-height:1.8;white-space:nowrap;
+  }
+
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:6px;
+    padding:26px 28px;
+    margin-bottom:20px;
+  }
+  .panel h2{
+    font-size:15px;font-weight:700;color:var(--ink);
+    margin:0 0 4px;letter-spacing:-.005em;
+    display:flex;align-items:center;gap:10px;
+  }
+  .panel h2 .num{
+    font-family:var(--mono);font-size:11px;color:var(--ink-faint);
+    border:1px solid var(--border);border-radius:3px;padding:2px 6px;
+  }
+  .panel .sub{color:var(--ink-faint);font-size:12.5px;margin:0 0 20px;}
+
+  .module-select{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;
+  }
+  .module-card{
+    border:1px solid var(--border);background:var(--panel);
+    border-radius:5px;padding:15px 17px;cursor:pointer;
+    transition:border-color .15s, background .15s;
+    user-select:none;
+  }
+  .module-card:hover{border-color:var(--border-strong);}
+  .module-card.active{border-color:var(--accent);background:var(--accent-soft);}
+  .module-card .mc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+  .module-card .mc-title{font-weight:600;font-size:14px;}
+  .checkbox{
+    width:17px;height:17px;border:1.5px solid var(--border-strong);border-radius:3px;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .module-card.active .checkbox{background:var(--accent);border-color:var(--accent);}
+  .checkbox svg{width:11px;height:11px;display:none;stroke:#fff;stroke-width:3;}
+  .module-card.active .checkbox svg{display:block;}
+  .module-card .mc-desc{color:var(--ink-dim);font-size:12px;line-height:1.5;}
+
+  .field-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px 20px;}
+  .field{display:flex;flex-direction:column;gap:6px;}
+  .field.span2{grid-column:span 2;}
+  .field label{
+    font-size:11.5px;color:var(--ink-dim);font-weight:600;
+    letter-spacing:.01em;display:flex;justify-content:space-between;
+  }
+  .field label .hint{color:var(--ink-faint);font-weight:400;}
+  .field input[type=number],.field input[type=text],.field select{
+    background:#fff;border:1px solid var(--border-strong);
+    color:var(--ink);border-radius:4px;padding:9px 10px;
+    font-family:var(--mono);font-size:13.5px;outline:none;
+    transition:border-color .15s;
+  }
+  .field input:focus,.field select:focus{border-color:var(--accent);}
+  .field select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%235B6472'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;}
+  .radio-row{display:flex;gap:8px;flex-wrap:wrap;}
+  .radio-pill{
+    font-size:12.5px;padding:8px 14px;border:1px solid var(--border-strong);
+    border-radius:5px;cursor:pointer;color:var(--ink-dim);background:#fff;font-weight:500;
+  }
+  .radio-pill.active{border-color:var(--accent);color:var(--accent);background:var(--accent-soft);font-weight:600;}
+
+  .divider{height:1px;background:var(--border);margin:22px 0;}
+  .subhead{font-size:11.5px;color:var(--ink-faint);letter-spacing:.05em;text-transform:uppercase;font-weight:600;margin:0 0 14px;}
+
+  .actions{display:flex;gap:12px;margin:28px 0;flex-wrap:wrap;align-items:center;}
+  button{
+    font-family:var(--sans);font-size:13.5px;font-weight:600;
+    padding:12px 24px;border-radius:5px;border:1px solid transparent;cursor:pointer;
+    transition:opacity .15s, background .15s;
+  }
+  .btn-primary{background:var(--accent);color:#fff;}
+  .btn-primary:hover{opacity:.9;}
+  .btn-ghost{background:#fff;border-color:var(--border-strong);color:var(--ink-dim);}
+  .btn-ghost:hover{border-color:var(--accent);color:var(--accent);}
+
+  .result-section{margin-bottom:20px;}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  thead th{
+    text-align:left;color:var(--ink-dim);font-size:10.5px;letter-spacing:.06em;
+    text-transform:uppercase;padding:9px 10px;border-bottom:1px solid var(--border-strong);
+    font-weight:600;
+  }
+  tbody td{padding:9px 10px;border-bottom:1px solid var(--border);color:var(--ink);}
+  tbody tr:last-child td{border-bottom:none;}
+  td.qty{font-family:var(--mono);font-weight:600;text-align:right;white-space:nowrap;color:var(--ink);}
+  td.unit{color:var(--ink-faint);white-space:nowrap;font-size:12.5px;}
+  .group-title{
+    font-size:11.5px;color:var(--ink-dim);font-weight:600;
+    letter-spacing:.04em;text-transform:uppercase;margin:18px 0 8px;
+    padding-top:14px;border-top:1px dashed var(--border);
+  }
+  .group-title:first-child{border-top:none;padding-top:0;margin-top:2px;}
+  .footnote{font-size:11.5px;color:var(--ink-faint);margin-top:10px;line-height:1.6;}
+
+  #resultsWrap{display:none;}
+  .print-hint{color:var(--ink-faint);font-size:12px;}
+  @media(max-width:640px){
+    .sheet-header{flex-direction:column;align-items:flex-start;}
+    .sheet-meta{text-align:left;}
+    .field.span2{grid-column:span 1;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="sheet-header">
+    <div class="title-block">
+      <div class="eyebrow">Planilha técnica · Cabeamento estruturado</div>
+      <h1>Sistema de Quantificação</h1>
+      <p>Defina os módulos do projeto e os parâmetros de campo. As quantidades de materiais são calculadas automaticamente a partir das regras de dimensionamento de backbone óptico e malha horizontal.</p>
+    </div>
+    <div class="sheet-meta" id="dateStamp"></div>
+  </div>
+
+  <div class="panel">
+    <h2><span class="num">01</span> Módulos do projeto</h2>
+    <p class="sub">selecione as partes da planilha a serem geradas — podem ser exibidas simultaneamente</p>
+    <div class="module-select">
+      <div class="module-card" data-module="primario">
+        <div class="mc-top"><span class="mc-title">Backbone Primário</span><span class="checkbox"><svg viewBox="0 0 12 12"><polyline points="1,6 4,9 11,2"/></svg></span></div>
+        <div class="mc-desc">Ligação principal / entrada de fibra do edifício.</div>
+      </div>
+      <div class="module-card" data-module="secundario">
+        <div class="mc-top"><span class="mc-title">Backbone Secundário</span><span class="checkbox"><svg viewBox="0 0 12 12"><polyline points="1,6 4,9 11,2"/></svg></span></div>
+        <div class="mc-desc">Distribuição entre pavimentos, até a Sala de Equipamentos (SEQ) ou Sala de Telecomunicações (SET).</div>
+      </div>
+      <div class="module-card" data-module="mh">
+        <div class="mc-top"><span class="mc-title">Malha Horizontal</span><span class="checkbox"><svg viewBox="0 0 12 12"><polyline points="1,6 4,9 11,2"/></svg></span></div>
+        <div class="mc-desc">Cabeamento UTP, tomadas, patch panels, racks e miscelânea de fixação.</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="formsWrap"></div>
+
+  <div class="actions" id="actionsBar" style="display:none;">
+    <button class="btn-primary" id="calcBtn">Gerar planilha de quantificação</button>
+    <button class="btn-ghost" id="csvBtn" style="display:none;">Exportar CSV</button>
+    <span class="print-hint" id="warnInline"></span>
+  </div>
+
+  <div id="resultsWrap"></div>
+
+</div>
+
+<script>
+document.getElementById('dateStamp').textContent = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
+
+const state = { primario:false, secundario:false, mh:false };
+let lastResults = null;
+
+document.querySelectorAll('.module-card').forEach(card=>{
+  card.addEventListener('click', ()=>{
+    const key = card.dataset.module;
+    state[key] = !state[key];
+    card.classList.toggle('active', state[key]);
+    renderForms();
+  });
+});
+
+function fieldNum(id,label,val,opts){
+  opts = opts||{};
+  const hint = opts.hint? `<span class="hint">${opts.hint}</span>`:'';
+  return `<div class="field ${opts.span2?'span2':''}">
+    <label>${label}${hint}</label>
+    <input type="number" id="${id}" value="${val!==undefined?val:''}" step="${opts.step||'any'}" min="${opts.min!==undefined?opts.min:0}">
+  </div>`;
+}
+function fieldText(id,label,val,opts){
+  opts=opts||{};
+  return `<div class="field ${opts.span2?'span2':''}">
+    <label>${label}</label>
+    <input type="text" id="${id}" value="${val||''}" placeholder="${opts.placeholder||''}">
+  </div>`;
+}
+function fieldSelect(id,label,options,val){
+  const opts = options.map(o=>`<option value="${o.v}" ${o.v===val?'selected':''}>${o.l}</option>`).join('');
+  return `<div class="field"><label>${label}</label><select id="${id}">${opts}</select></div>`;
+}
+
+function renderForms(){
+  const wrap = document.getElementById('formsWrap');
+  let html = '';
+  let n = 1;
+
+  if(state.primario){
+    n++;
+    html += `
+    <div class="panel">
+      <h2><span class="num">0${n}</span> Backbone Primário — parâmetros</h2>
+      <p class="sub">ligação principal / entrada de fibra do edifício</p>
+      <div class="field-grid">
+        ${fieldNum('p_distancia','Distância percorrida (m)',30)}
+        ${fieldNum('p_fibras','Quantidade de fibras disponíveis',24,{hint:'total no cabo'})}
+        ${fieldNum('p_backbones','Nº de backbones primários',1,{hint:'lances em paralelo'})}
+        ${fieldText('p_tipoCabo','Tipo / característica do cabo','FOSM OS2 – Loose Tube',{placeholder:'ex: FOSM OS2, Tight Buffer...'})}
+        ${fieldText('p_nucleo','Espessura do núcleo da fibra','9/125',{placeholder:'ex: 9/125 µm, 50/125 µm...'})}
+      </div>
+      <div class="footnote">Comprimento do cabo = distância percorrida × 1,2 (margem de 20%). ≤ 12 fibras → terminador óptico 12 portas · &gt; 12 fibras → DIO 24 portas.</div>
+    </div>`;
+  }
+
+  if(state.secundario){
+    n++;
+    html += `
+    <div class="panel">
+      <h2><span class="num">0${n}</span> Backbone Secundário — parâmetros</h2>
+      <p class="sub">distribuição entre pavimentos, até a Sala de Equipamentos (SEQ) e a Sala de Telecomunicações (SET)</p>
+      <div class="field-grid">
+        ${fieldNum('s_pavimentos','Número de pavimentos (n)',4)}
+        ${fieldNum('s_backbonesPav','Backbones por pavimento',1)}
+        ${fieldNum('s_fibrasPorCabo','Fibras por cabo',12)}
+        ${fieldText('s_tipoCabo','Tipo / característica do cabo','FOMIG OM3 – Tight Buffer',{placeholder:'ex: FOMIG OM3...'})}
+        ${fieldText('s_nucleo','Espessura do núcleo da fibra','50/125',{placeholder:'ex: 9/125 µm, 50/125 µm...'})}
+      </div>
+
+      <div class="divider"></div>
+      <p class="subhead">medida do lance — Sala de Equipamentos (SEQ)</p>
+      <div class="field-grid">
+        <div class="field span2">
+          <label>Tipo de medida</label>
+          <div class="radio-row" id="medidaRow">
+            <div class="radio-pill active" data-medida="vertical">Vertical (entre pavimentos)</div>
+            <div class="radio-pill" data-medida="linear">Linear (entre backbones)</div>
+          </div>
+        </div>
+        <div class="field" id="peDireitoField">${fieldNum('s_peDireito','Pé direito (p, em metros)',3.0,{step:'0.1'}).replace('<div class="field ">','').replace('</div>','')}</div>
+        <div class="field" id="distLinearField" style="display:none;">${fieldNum('s_distLinear','Distância linear entre backbones (m)',20).replace('<div class="field ">','').replace('</div>','')}</div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="field-grid">
+        ${fieldNum('s_totalDemais','Backbones nos demais pavimentos',3,{hint:'auto-sugerido, editável'})}
+      </div>
+      <div class="footnote">Sugestão automática = (pavimentos − 1) × backbones/pavimento. Ajuste manualmente se necessário. SEQ e SET são geradas simultaneamente na planilha.</div>
+    </div>`;
+  }
+
+  if(state.mh){
+    n++;
+    html += `
+    <div class="panel">
+      <h2><span class="num">0${n}</span> Malha Horizontal — parâmetros</h2>
+      <p class="sub">cabeamento de dados, voz e CFTV por pavimento</p>
+      <div class="field-grid">
+        <div class="field span2">
+          <label>Informar pontos por</label>
+          <div class="radio-row" id="pontosRow">
+            <div class="radio-pill active" data-pontos="rede">Pontos de rede</div>
+            <div class="radio-pill" data-pontos="telecom">Pontos de telecom</div>
+          </div>
+        </div>
+        <div class="field" id="pontosRedeField">${fieldNum('m_pontosRede','Pontos de rede (total)',96).replace('<div class="field ">','').replace('</div>','')}</div>
+        <div class="field" id="pontosTelecomField" style="display:none;">${fieldNum('m_pontosTelecom','Pontos de telecom (total)',48,{hint:'1 telecom = 2 rede'}).replace('<div class="field ">','').replace('</div>','')}</div>
+        ${fieldNum('m_metragem','Metragem básica por ponto (m)',35)}
+        ${fieldSelect('m_rackTipo','Rack',[{v:'fechado',l:'Fechado (com exaustor)'},{v:'aberto',l:'Aberto'}],'fechado')}
+      </div>
+      <div class="divider"></div>
+      <p class="subhead">distribuição percentual dos pontos de rede</p>
+      <div class="field-grid">
+        ${fieldNum('m_pctDados','% Dados',60,{hint:'0–100'})}
+        ${fieldNum('m_pctVoip','% VOIP',20,{hint:'0–100'})}
+        ${fieldNum('m_pctCftv','% CFTV',20,{hint:'0–100'})}
+      </div>
+      <div class="footnote" id="pctWarn"></div>
+    </div>`;
+  }
+
+  wrap.innerHTML = html;
+
+  document.getElementById('actionsBar').style.display = (state.primario||state.secundario||state.mh) ? 'flex' : 'none';
+
+  if(state.mh){
+    ['m_pctDados','m_pctVoip','m_pctCftv'].forEach(id=>{
+      document.getElementById(id).addEventListener('input', checkPct);
+    });
+    checkPct();
+
+    document.querySelectorAll('#pontosRow .radio-pill').forEach(p=>{
+      p.addEventListener('click', ()=>{
+        document.querySelectorAll('#pontosRow .radio-pill').forEach(x=>x.classList.remove('active'));
+        p.classList.add('active');
+        const isRede = p.dataset.pontos==='rede';
+        document.getElementById('pontosRedeField').style.display = isRede?'flex':'none';
+        document.getElementById('pontosTelecomField').style.display = isRede?'none':'flex';
+      });
+    });
+  }
+
+  if(state.secundario){
+    document.querySelectorAll('#medidaRow .radio-pill').forEach(p=>{
+      p.addEventListener('click', ()=>{
+        document.querySelectorAll('#medidaRow .radio-pill').forEach(x=>x.classList.remove('active'));
+        p.classList.add('active');
+        const isVertical = p.dataset.medida==='vertical';
+        document.getElementById('peDireitoField').style.display = isVertical?'flex':'none';
+        document.getElementById('distLinearField').style.display = isVertical?'none':'flex';
+      });
+    });
+    ['s_pavimentos','s_backbonesPav'].forEach(id=>{
+      document.getElementById(id).addEventListener('input', ()=>{
+        const nn = parseFloat(document.getElementById('s_pavimentos').value)||0;
+        const bp = parseFloat(document.getElementById('s_backbonesPav').value)||0;
+        document.getElementById('s_totalDemais').value = Math.max(0,(nn-1)*bp);
+      });
+    });
+  }
+}
+
+function checkPct(){
+  const d = parseFloat(document.getElementById('m_pctDados').value)||0;
+  const v = parseFloat(document.getElementById('m_pctVoip').value)||0;
+  const c = parseFloat(document.getElementById('m_pctCftv').value)||0;
+  const sum = d+v+c;
+  const el = document.getElementById('pctWarn');
+  if(Math.abs(sum-100)>0.01){
+    el.style.color = 'var(--danger)';
+    el.textContent = `Atenção: a soma dos percentuais é ${sum}% (deveria ser 100%).`;
+  } else {
+    el.style.color = 'var(--ink-faint)';
+    el.textContent = `Soma dos percentuais: ${sum}%.`;
+  }
+}
+
+function ceilDiv(a,b){ return Math.ceil(a/b); }
+function roundRackU(u){
+  if(u<=0) return 2;
+  if(u<=12){ return Math.ceil(u/2)*2; }
+  return Math.ceil(u/4)*4;
+}
+
+document.getElementById('calcBtn').addEventListener('click', ()=>{
+  const results = [];
+
+  if(state.primario){
+    const distancia = num('p_distancia');
+    const fibras = num('p_fibras');
+    const backbones = num('p_backbones')||1;
+    const tipoCabo = str('p_tipoCabo');
+    const nucleo = str('p_nucleo');
+    const comprimentoCabo = Math.ceil(distancia * 1.2 * backbones);
+    const pigtail = ceilDiv(fibras,2) * backbones;
+    const rows = [];
+    rows.push(['Cabo de fibra óptica ('+tipoCabo+' – núcleo '+nucleo+')', comprimentoCabo, 'm']);
+    rows.push(['Pigtail LC Duplo (3m) – núcleo '+nucleo, pigtail, 'un']);
+    if(fibras<=12){
+      rows.push(['Terminador óptico 12 portas', 1*backbones, 'un']);
+    } else {
+      rows.push(['DIO 24 portas 19" 1U', ceilDiv(pigtail,24), 'un']);
+    }
+    results.push({title:'Backbone Óptico Primário', groups:[{name:null, rows}]});
+  }
+
+  if(state.secundario){
+    const pavimentos = num('s_pavimentos');
+    const backbonesPav = num('s_backbonesPav')||1;
+    const fibrasPorCabo = num('s_fibrasPorCabo');
+    const tipoCabo = str('s_tipoCabo');
+    const nucleo = str('s_nucleo');
+    const totalDemais = num('s_totalDemais');
+    const groups = [];
+
+    const medida = document.querySelector('#medidaRow .radio-pill.active').dataset.medida;
+    const p = num('s_peDireito');
+    const distLinear = num('s_distLinear');
+    let medidaBasica, fator;
+    if(medida==='vertical'){
+      medidaBasica = ((pavimentos+1)*(pavimentos+2)/2)*p - (3*p);
+      fator = 1.2;
+    } else {
+      medidaBasica = distLinear;
+      fator = 1.1;
+    }
+    const qtdCabo = Math.ceil(medidaBasica * fator);
+    const pigtail15 = ceilDiv(totalDemais*fibrasPorCabo, 2);
+    const acoplador = pigtail15;
+    const cordao3m = pigtail15*2;
+
+    const seqRows = [];
+    seqRows.push(['Cabo de fibra óptica ('+tipoCabo+' – núcleo '+nucleo+')', qtdCabo, 'm']);
+    seqRows.push(['Pigtail LC Duplo (1,5m) – núcleo '+nucleo, pigtail15, 'un']);
+    seqRows.push(['Acoplador óptico LC Duplo – núcleo '+nucleo, acoplador, 'un']);
+    if(fibrasPorCabo>12){
+      seqRows.push(['DIO 24 portas 19" 1U', ceilDiv(pigtail15,24), 'un']);
+    } else {
+      seqRows.push(['Terminador óptico 12 portas', ceilDiv(pigtail15,12), 'un']);
+    }
+    seqRows.push(['Cordão óptico 3m simples – núcleo '+nucleo, cordao3m, 'un']);
+    groups.push({name:'Sala de Equipamentos (SEQ)', rows:seqRows});
+
+    const terminadorSet = totalDemais;
+    const pigtail3Set = ceilDiv(totalDemais*fibrasPorCabo,2);
+    const setRows = [];
+    setRows.push(['Terminador óptico', terminadorSet, 'un']);
+    setRows.push(['Pigtail LC Duplo (3m) – núcleo '+nucleo, pigtail3Set, 'un']);
+    groups.push({name:'Sala de Telecomunicações (SET)', rows:setRows});
+
+    results.push({title:'Backbone Óptico Secundário', groups});
+  }
+
+  if(state.mh){
+    const pontosPor = document.querySelector('#pontosRow .radio-pill.active').dataset.pontos;
+    let pontosRede, pontosTelecom;
+    if(pontosPor==='rede'){
+      pontosRede = num('m_pontosRede');
+      pontosTelecom = Math.ceil(pontosRede/2);
+    } else {
+      pontosTelecom = num('m_pontosTelecom');
+      pontosRede = pontosTelecom*2;
+    }
+    const metragem = num('m_metragem');
+    const rackTipo = str('m_rackTipo');
+    const pctDados = num('m_pctDados');
+    const pctVoip = num('m_pctVoip');
+    const pctCftv = num('m_pctCftv');
+
+    const qtyCFTV = Math.round(pctCftv/100*pontosRede);
+    const caboUTPmetros = metragem*pontosRede;
+    const caboUTPcaixas = Math.ceil(caboUTPmetros/305);
+    const tomadaRJ45 = pontosRede;
+    const espelho = pontosTelecom;
+    const patchCordAzul = pontosRede - qtyCFTV;
+    const patchCordBranco = qtyCFTV;
+    const totalPatchCords = patchCordAzul + patchCordBranco;
+    const patchPanel = ceilDiv(pontosRede,24);
+    const organizador = 2*patchPanel;
+    const patchCableDados = Math.round(pctDados/100*pontosRede);
+    const patchCableCamera = qtyCFTV;
+    const patchCableVoz = Math.round(pctVoip/100*pontosRede);
+
+    const exaustorEstimate = rackTipo==='fechado' ? 1 : 0;
+    const rawU = (patchPanel*2 + organizador + exaustorEstimate) * 1.5;
+    let racks;
+    if(rawU<=48){ racks=[roundRackU(rawU)]; }
+    else { racks=[48, roundRackU(rawU-48)]; }
+    const qtdRack = racks.length;
+    const exaustorFinal = rackTipo==='fechado' ? qtdRack : 0;
+    const bandejaFixa = exaustorFinal;
+    const espacoOcupado = patchPanel*2 + organizador + exaustorFinal;
+    const tamanhoRackTotal = racks.reduce((a,b)=>a+b,0);
+    const reguaFechamento = Math.max(0, tamanhoRackTotal - espacoOcupado);
+    const porcaGaiola = ceilDiv(4*espacoOcupado,10);
+
+    const etqPortaPP = 24*patchPanel;
+    const etqPatchCable = pontosRede*2;
+    const etqPatchCord = totalPatchCords*2;
+    const etqPP = patchPanel;
+    const etqTomadasEspelhos = espelho+tomadaRJ45;
+    const etqCabosUTP = pontosRede*2;
+
+    const rowsCabo = [
+      ['Cabo UTP', caboUTPcaixas, 'cxs'],
+      ['Tomada RJ45', tomadaRJ45, 'un'],
+      ['Espelho 4x4 – 2 furações', espelho, 'un'],
+      ['Patch cord azul 3m', patchCordAzul, 'un'],
+      ['Patch cord branco 1m', patchCordBranco, 'un'],
+      ['Patch panel 24 portas', patchPanel, 'un'],
+      ['Organizador de cabos', organizador, 'un'],
+      ['Bandeja fixa', bandejaFixa, 'un'],
+      ['Patch cable 2,5m azul (dados)', patchCableDados, 'un'],
+      ['Patch cable 2,5m vermelho (câmera)', patchCableCamera, 'un'],
+      ['Patch cable 2,5m amarelo (voz)', patchCableVoz, 'un'],
+    ];
+    racks.forEach((sz,i)=>{
+      rowsCabo.push([`Rack 19" ${rackTipo}` + (racks.length>1?` (unidade ${i+1})`:''), sz, 'U']);
+    });
+    if(rackTipo==='fechado'){
+      rowsCabo.push(['Exaustor 19"', exaustorFinal, 'un']);
+    }
+
+    const rowsMisc = [
+      ['Etiquetas — portas do patch panel', etqPortaPP, 'un'],
+      ['Etiquetas — patch cable', etqPatchCable, 'un'],
+      ['Etiquetas — patch cord', etqPatchCord, 'un'],
+      ['Etiquetas — patch panel', etqPP, 'un'],
+      ['Etiquetas — tomadas e espelhos', etqTomadasEspelhos, 'un'],
+      ['Etiquetas — cabos UTP (MH)', etqCabosUTP, 'un'],
+      ['Abraçadeiras plásticas (pacote 100un)', 1, 'pct'],
+      ['Abraçadeiras de velcro (rolo 3m)', 1, 'un'],
+      ['Régua com 8 tomadas — filtro de linha', qtdRack, 'un'],
+      ['Régua de fechamento 1U', reguaFechamento, 'un'],
+      ['Porca gaiola (pacote 10un)', porcaGaiola, 'pct'],
+    ];
+
+    results.push({title:'Malha Horizontal', groups:[
+      {name:'Materiais de cabeamento', rows:rowsCabo},
+      {name:'Miscelânea', rows:rowsMisc}
+    ]});
+  }
+
+  lastResults = results;
+  renderResults(results);
+});
+
+function num(id){ return parseFloat(document.getElementById(id).value)||0; }
+function str(id){ return document.getElementById(id).value; }
+
+function renderResults(results){
+  const wrap = document.getElementById('resultsWrap');
+  let html = '';
+  results.forEach((sec,i)=>{
+    html += `<div class="panel result-section"><h2><span class="num">R${i+1}</span> ${sec.title}</h2>`;
+    sec.groups.forEach(g=>{
+      if(g.name) html += `<div class="group-title">${g.name}</div>`;
+      html += `<table><thead><tr><th>Item</th><th style="text-align:right;">Qtd.</th><th>Un.</th></tr></thead><tbody>`;
+      g.rows.forEach(r=>{
+        html += `<tr><td>${r[0]}</td><td class="qty">${r[1]}</td><td class="unit">${r[2]}</td></tr>`;
+      });
+      html += `</tbody></table>`;
+    });
+    html += `</div>`;
+  });
+  wrap.innerHTML = html;
+  wrap.style.display = 'block';
+  document.getElementById('csvBtn').style.display = 'inline-block';
+  wrap.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+document.getElementById('csvBtn').addEventListener('click', ()=>{
+  if(!lastResults) return;
+  let csv = 'Secao;Grupo;Item;Quantidade;Unidade\n';
+  lastResults.forEach(sec=>{
+    sec.groups.forEach(g=>{
+      g.rows.forEach(r=>{
+        const clean = s => String(s).replace(/;/g,',').replace(/<[^>]*>/g,'');
+        csv += `${clean(sec.title)};${clean(g.name||'')};${clean(r[0])};${clean(r[1])};${clean(r[2])}\n`;
+      });
+    });
+  });
+  const blob = new Blob(["\uFEFF"+csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'quantificacao_cabeamento.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+});
+</script>
+</body>
+</html>
